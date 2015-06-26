@@ -100,13 +100,15 @@ def add_member(mlist, record, role=MemberRole.member):
 
 
 
-def delete_member(mlist, email, admin_notif=None, userack=None):
+def delete_member(mlist, email, channel, admin_notif=None, userack=None):
     """Delete a member right now.
 
     :param mlist: The mailing list to remove the member from.
     :type mlist: `IMailingList`
     :param email: The email address to unsubscribe.
     :type email: string
+    :param channel: the mode of unsubscription
+    :type channel: string
     :param admin_notif: Whether the list administrator should be notified that
         this member was deleted.
     :type admin_notif: bool, or None to let the mailing list's
@@ -123,7 +125,7 @@ def delete_member(mlist, email, admin_notif=None, userack=None):
     if member is None:
         raise NotAMemberError(mlist, email)
     language = member.preferred_language
-    member.unsubscribe()
+    member.unsubscribe(channel)
     # And send an acknowledgement to the user...
     if userack:
         send_goodbye_message(mlist, email, language)

@@ -19,9 +19,11 @@
 
 __all__ = [
     'Member',
+    'Unsubscriber',
     ]
 
 
+from mailman.utilities.datetime import today
 from mailman.core.constants import system_preferences
 from mailman.database.model import Model
 from mailman.database.transaction import dbconnection
@@ -30,11 +32,11 @@ from mailman.interfaces.action import Action
 from mailman.interfaces.address import IAddress
 from mailman.interfaces.listmanager import IListManager
 from mailman.interfaces.member import (
-    IMember, MemberRole, MembershipError, UnsubscriptionEvent)
+    IMember, MemberRole, MembershipError, UnsubscriptionEvent, IUnsubscriber)
 from mailman.interfaces.user import IUser, UnverifiedAddressError
 from mailman.interfaces.usermanager import IUserManager
 from mailman.utilities.uid import UniqueIDFactory
-from sqlalchemy import Column, ForeignKey, Integer, Unicode
+from sqlalchemy import Column, ForeignKey, Integer, Unicode, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from zope.component import getUtility
 from zope.event import notify
@@ -44,7 +46,6 @@ from zope.interface import implementer
 uid_factory = UniqueIDFactory(context='members')
 
 
-
 @implementer(IMember)
 class Member(Model):
     """See `IMember`."""
@@ -88,7 +89,7 @@ class Member(Model):
                 'Invalid MemberRole: {0}'.format(role))
             self.moderation_action = getUtility(IListManager).get_by_list_id(
                 list_id).default_nonmember_action
-
+        
     def __repr__(self):
         return '<Member: {0} on {1} as {2}>'.format(
             self.address, self.mailing_list.fqdn_listname, self.role)
@@ -197,9 +198,40 @@ class Member(Model):
         return 'http://example.com/' + self.address.email
 
     @dbconnection
-    def unsubscribe(self, store):
+    def unsubscribe(self, store, channel=None):
         """See `IMember`."""
         # Yes, this must get triggered before self is deleted.
         notify(UnsubscriptionEvent(self.mailing_list, self))
+        if channel:
+            unsub_member = Unsubscriber(self.role, self.list_id, self.address_id, self.user_id, channel)
+            store.add(unsub_member)
         store.delete(self.preferences)
         store.delete(self)
+
+
+@implementer(IUnsubscriber)
+class Unsubscriber(Model):
+    """See `IUnsubscriber`."""
+
+    __tablename__ = 'unsubscriber'
+
+    id = Column(Integer, primary_key=True)
+    role = Column(Enum(MemberRole))
+    list_id = Column(Unicode)
+    address_id = Column(Integer, ForeignKey('address.id'))
+    _address = relationship('Address')
+    user_id = Column(Integer, ForeignKey('user.id'))
+    _user = relationship('User')
+    date_unsub = Column(DateTime)
+    channel = Column(Unicode)
+
+
+    def __init__(self, role, list_id, address_id, user_id, channel):
+        self.role = role
+        self.list_id = list_id
+        self.address_id = address_id
+        self.user_id = user_id
+        self.date_unsub = today()
+        self.channel = channel
+
+

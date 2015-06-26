@@ -30,6 +30,7 @@ __all__ = [
     'NotAMemberError',
     'SubscriptionEvent',
     'UnsubscriptionEvent',
+    'IUnsubscriber',
     ]
 
 
@@ -38,7 +39,7 @@ from mailman.core.errors import MailmanError
 from zope.interface import Interface, Attribute
 
 
-
+
 class DeliveryMode(Enum):
     # Regular (i.e. non-digest) delivery
     regular = 1
@@ -50,7 +51,7 @@ class DeliveryMode(Enum):
     summary_digests = 4
 
 
-
+
 class DeliveryStatus(Enum):
     # Delivery is enabled
     enabled = 1
@@ -64,7 +65,7 @@ class DeliveryStatus(Enum):
     unknown = 5
 
 
-
+
 class MemberRole(Enum):
     member = 1
     owner = 2
@@ -72,7 +73,7 @@ class MemberRole(Enum):
     nonmember = 4
 
 
-
+
 class MembershipChangeEvent:
     """Base class for subscription/unsubscription events."""
 
@@ -100,7 +101,7 @@ class UnsubscriptionEvent(MembershipChangeEvent):
         return '{0} left {1}'.format(self.member.address, self.mlist.list_id)
 
 
-
+
 class MembershipError(MailmanError):
     """Base exception for all membership errors."""
 
@@ -156,7 +157,7 @@ class NotAMemberError(MembershipError):
             self._address, self._mlist)
 
 
-
+
 class IMember(Interface):
     """A member of a mailing list."""
 
@@ -193,7 +194,11 @@ class IMember(Interface):
         """The moderation action for this member as an `Action`.""")
 
     def unsubscribe():
-        """Unsubscribe (and delete) this member from the mailing list."""
+        """Unsubscribe (and delete) this member from the mailing list.
+        :param channel: channel of unsubscription
+        :type channel: str
+        """
+        
 
     acknowledge_posts = Attribute(
         """Send an acknowledgment for every posting?
@@ -275,3 +280,31 @@ class IMember(Interface):
         database, since a member's options aren't tied to any specific mailing
         list.  So in what part of the web-space does the user's options live?
         """)
+
+
+class IUnsubscriber(Interface):
+    """A member unsubscribed from a mailing list."""
+
+    list_id = Attribute(
+        """The list id of the mailing list the member is unsubscribed from.""")
+
+    address = Attribute(
+        """The email address that's unsubscribed from the list.""")
+
+    user = Attribute(
+        """The user associated with this unsubscriber.""")
+
+    role = Attribute(
+        """The role of the unsubscribing member""")
+
+    date_unsub = Attribute(
+        """The date on which member is unsubscribed""")
+
+    channel = Attribute(
+        """ The channel through which member is unsubscribing
+
+        This can be 'web-confirmation', 'email-confirmation'
+        'via the member options page', 'admin mass unsub' or 'disable'
+         """)
+
+

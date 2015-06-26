@@ -31,6 +31,7 @@ __all__ = [
     'OwnerRoster',
     'RegularMemberRoster',
     'Subscribers',
+    'Unsubscribers',
     ]
 
 
@@ -38,12 +39,12 @@ from mailman.database.transaction import dbconnection
 from mailman.interfaces.member import DeliveryMode, MemberRole
 from mailman.interfaces.roster import IRoster
 from mailman.model.address import Address
-from mailman.model.member import Member
+from mailman.model.member import Member, Unsubscriber
 from sqlalchemy import and_, or_
 from zope.interface import implementer
 
 
-
+
 @implementer(IRoster)
 class AbstractRoster:
     """An abstract IRoster class.
@@ -141,7 +142,6 @@ class AbstractRoster:
         return memberships
 
 
-
 class MemberRoster(AbstractRoster):
     """Return all the members of a list."""
 
@@ -149,7 +149,7 @@ class MemberRoster(AbstractRoster):
     role = MemberRole.member
 
 
-
+
 class NonmemberRoster(AbstractRoster):
     """Return all the nonmembers of a list."""
 
@@ -157,7 +157,7 @@ class NonmemberRoster(AbstractRoster):
     role = MemberRole.nonmember
 
 
-
+
 class OwnerRoster(AbstractRoster):
     """Return all the owners of a list."""
 
@@ -165,7 +165,7 @@ class OwnerRoster(AbstractRoster):
     role = MemberRole.owner
 
 
-
+
 class ModeratorRoster(AbstractRoster):
     """Return all the owners of a list."""
 
@@ -273,7 +273,32 @@ class Subscribers(AbstractRoster):
         return store.query(Member).filter_by(list_id = self._mlist.list_id)
 
 
-
+class Unsubscribers(AbstractRoster):
+    """Return all unsubscribed members for differnt channels"""
+
+    @dbconnection
+    def countUnsubscribers(self, store, channel, start_date=None, stop_date=None):
+
+        try:
+            if start_date is None:
+                if stop_date is None:
+                    results = store.query(Unsubscriber).filter(
+                    Unsubscriber.list_id == self._mlist.list_id,
+                    Unsubscriber.channel==channel
+                    )
+
+            else:
+                results = store.query(Unsubscriber).filter(
+                    Unsubscriber.list_id == self._mlist.list_id,
+                    Unsubscriber.channel==channel,
+                    Unsubscriber.date_unsub >= start_date,
+                    Unsubscriber.date_unsub <= stop_date
+                    )
+        except:
+            return 'db-error'
+        return (results.count())
+
+    
 @implementer(IRoster)
 class Memberships:
     """A roster of a single user's memberships."""

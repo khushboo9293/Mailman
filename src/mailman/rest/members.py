@@ -47,7 +47,6 @@ from uuid import UUID
 from zope.component import getUtility
 
 
-
 class _MemberBase(CollectionMixin):
     """Shared base class for member representations."""
 
@@ -100,7 +99,7 @@ class MemberCollection(_MemberBase):
         okay(response, etag(resource))
 
 
-
+
 class AMember(_MemberBase):
     """A member."""
 
@@ -155,15 +154,27 @@ class AMember(_MemberBase):
         if self._member is None:
             not_found(response)
             return
+        
+        arguments = {}
+        if len(request.params.items()) == 0:
+           arguments['mode'] = None 
+        else:
+            try:
+                validator = Validator(mode=str)
+                arguments = validator(request)
+            except ValueError as error:
+                 bad_request(response, str(error))
+                 return
+
         mlist = getUtility(IListManager).get_by_list_id(self._member.list_id)
         if self._member.role is MemberRole.member:
             try:
-                delete_member(mlist, self._member.address.email, False, False)
+                delete_member(mlist, self._member.address.email, arguments['mode'], False, False)
             except NotAMemberError:
                 not_found(response)
                 return
         else:
-            self._member.unsubscribe()
+            self._member.unsubscribe(arguments['mode'])
         no_content(response)
 
     def on_patch(self, request, response):

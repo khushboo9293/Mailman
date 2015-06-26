@@ -40,6 +40,7 @@ from mailman.rest.preferences import ReadOnlyPreferences
 from mailman.rest.queues import AQueue, AQueueFile, AllQueues
 from mailman.rest.templates import TemplateFinder
 from mailman.rest.users import AUser, AllUsers
+from mailman.rest.unsubscriber import Unsubscriber
 from zope.component import getUtility
 
 
@@ -255,3 +256,15 @@ class TopLevel:
     def reserved(self, request, segments):
         """/<api>/reserved/[...]"""
         return Reserved(segments), []
+
+    @child()
+    def unsubscriber(self, request, segments):
+        """/<api>/unsubscriber/<fqdn_listname>"""
+        if len(segments) == 1:
+            return Unsubscriber(segments[0]), []
+        else:
+            return BadRequest(), []
+
+
+
+
