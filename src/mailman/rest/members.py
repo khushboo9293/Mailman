@@ -157,24 +157,23 @@ class AMember(_MemberBase):
         
         arguments = {}
         if len(request.params.items()) == 0:
-           arguments['mode'] = None 
+           arguments['channel'] = None 
         else:
             try:
-                validator = Validator(mode=str)
+                validator = Validator(channel=str)
                 arguments = validator(request)
             except ValueError as error:
                  bad_request(response, str(error))
                  return
-
         mlist = getUtility(IListManager).get_by_list_id(self._member.list_id)
         if self._member.role is MemberRole.member:
             try:
-                delete_member(mlist, self._member.address.email, arguments['mode'], False, False)
+                delete_member(mlist, self._member.address.email, arguments['channel'], False, False)
             except NotAMemberError:
                 not_found(response)
                 return
         else:
-            self._member.unsubscribe(arguments['mode'])
+            self._member.unsubscribe(arguments['channel'])
         no_content(response)
 
     def on_patch(self, request, response):
