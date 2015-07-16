@@ -253,8 +253,26 @@ class TestMembership(unittest.TestCase):
             call_api('http://localhost:9001/3.0/members/1/all')
         self.assertEqual(cm.exception.code, 404)
 
+    def test_delete_member_bogus_attribute(self):
+        with transaction():
+            anne = self._usermanager.create_address('anne@example.com')
+            self._mlist.subscribe(anne)
+        # Try to leave a mailing list using a bogus parameter 'abc' instead of 'channel'.
+        with self.assertRaises(HTTPError) as cm:
+            call_api('http://localhost:9001/3.0/members/1', data={'abc':1}, method='DELETE')
+        self.assertEqual(cm.exception.code, 400)
+        self.assertEqual(cm.exception.reason, b'Unexpected parameters: abc')
 
-
+    def test_unsubscribe_invalid_channel(self):
+        with transaction():
+            anne = self._usermanager.create_address('anne@example.com')
+            self._mlist.subscribe(anne)
+        # Try to leave a mailing list using an invalid channel 'abc'.
+        with self.assertRaises(HTTPError) as cm:
+            call_api('http://localhost:9001/3.0/members/1', data={'channel':'abc'}, method='DELETE')
+        self.assertEqual(cm.exception.code, 400)
+        self.assertEqual(cm.exception.reason, b'Invalid channel of unsubscribing:abc')
+
 class CustomLayer(ConfigLayer):
     """Custom layer which starts both the REST and LMTP servers."""
 
