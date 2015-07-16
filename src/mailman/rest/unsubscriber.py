@@ -22,6 +22,7 @@ __all__ = [
     ]
 
 from mailman.interfaces.listmanager import IListManager
+from mailman.interfaces.member import CHANNELS
 from mailman.rest.helpers import (
     CollectionMixin, bad_request,etag, no_content,  okay)
 from mailman.rest.validator import Validator
@@ -30,12 +31,6 @@ from mailman.model.member import Unsubscriber
 from mailman.model import mailinglist
 from mailman.model.roster import Unsubscribers 
 import datetime
-
-
-CHANNELS = ('email confirmation',
-            'member options page',
-            'admin mass removal',
-            'disable')
 
 
 class Unsubscriber(CollectionMixin):

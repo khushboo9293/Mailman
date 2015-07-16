@@ -100,7 +100,7 @@ def add_member(mlist, record, role=MemberRole.member):
 
 
 
-def delete_member(mlist, email, channel, admin_notif=None, userack=None):
+def delete_member(mlist, email, channel=None, admin_notif=None, userack=None):
     """Delete a member right now.
 
     :param mlist: The mailing list to remove the member from.

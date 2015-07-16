@@ -30,7 +30,7 @@ from mailman.interfaces.address import IAddress, InvalidEmailAddressError
 from mailman.interfaces.listmanager import IListManager
 from mailman.interfaces.member import (
     AlreadySubscribedError, DeliveryMode, MemberRole, MembershipError,
-    MembershipIsBannedError, NotAMemberError)
+    MembershipIsBannedError, NotAMemberError, CHANNELS)
 from mailman.interfaces.registrar import IRegistrar
 from mailman.interfaces.subscriptions import (
     ISubscriptionService, RequestRecord, TokenOwner)
@@ -165,6 +165,10 @@ class AMember(_MemberBase):
             except ValueError as error:
                  bad_request(response, str(error))
                  return
+            if not arguments['channel'] in CHANNELS:
+                bad_request(response, 'Invalid channel of unsubscribing:{0}'.format(arguments['channel']))
+                return
+
         mlist = getUtility(IListManager).get_by_list_id(self._member.list_id)
         if self._member.role is MemberRole.member:
             try:

@@ -39,6 +39,10 @@ from mailman.core.errors import MailmanError
 from zope.interface import Interface, Attribute
 
 
+CHANNELS = ('email confirmation',
+            'member options page',
+            'admin mass removal',
+            'disable')
 
 class DeliveryMode(Enum):
     # Regular (i.e. non-digest) delivery
