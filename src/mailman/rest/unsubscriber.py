@@ -41,6 +41,9 @@ class Unsubscriber(CollectionMixin):
         return dict (no_of_unsubscriber = result)
 
     def __init__(self, list_identifier):
+        """ Initialize the instance with the mailing list name for which 
+            unsubscriber count is requested"""
+
         list_manager = getUtility(IListManager)
         if '@' in list_identifier:
             self._mlist = list_manager.get(list_identifier)
@@ -50,7 +53,7 @@ class Unsubscriber(CollectionMixin):
     def get_count(self, start_date=None, stop_date=None):
         result = ""
         total = 0
-        unsub_roster = Unsubscribers(self._mlist)
+        unsub_roster = Unsubscribers(self._mlist)    #see mailman/model/roster.py
         # reporting the unsubscribers via all the possible modes
         for channel in CHANNELS:
             if start_date and stop_date:

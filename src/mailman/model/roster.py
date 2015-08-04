@@ -278,6 +278,12 @@ class Unsubscribers(AbstractRoster):
 
     @dbconnection
     def countUnsubscribers(self, store, channel, start_date=None, stop_date=None):
+        :param channel: channel of unsubscription
+        :type channel: str
+        :param start_date: the from date to get count of unsubscribers
+        :type start_date: str
+        :param stop_date: the to date to get count of unsubscribers
+        :type stop_date: str
 
         try:
             if start_date is None:

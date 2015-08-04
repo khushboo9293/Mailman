@@ -199,7 +199,9 @@ class Member(Model):
 
     @dbconnection
     def unsubscribe(self, store, channel=None):
-        """See `IMember`."""
+        """Delete member from member table and create a record for the unsubscribed member
+           in the Unsubscriber table. Store the channel and date of unsubscription"""
+
         # Yes, this must get triggered before self is deleted.
         notify(UnsubscriptionEvent(self.mailing_list, self))
         if channel:

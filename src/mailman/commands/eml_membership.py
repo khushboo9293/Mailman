@@ -194,6 +194,7 @@ You may be asked to confirm your request.""")
                 '$self.name: $email is not a member of $mlist.fqdn_listname'),
                 file=results)
             return ContinueProcessing.no
+        #pass the channel when unsubscribing through email
         member.unsubscribe('email confirmation')
         person = formataddr((user.display_name, email))
         print(_('$person left $mlist.fqdn_listname'), file=results)
