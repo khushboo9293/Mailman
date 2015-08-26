@@ -23,12 +23,12 @@ __all__ = [
 
 
 import logging
-import subprocess
 
 from mailman.config import config
 from mailman.config.config import external_configuration
 from mailman.interfaces.archiver import IArchiver
 from mailman.utilities.string import expand
+from subprocess import PIPE, Popen
 from urllib.parse import urljoin
 from zope.interface import implementer
 
@@ -63,10 +63,14 @@ class MHonArc:
     def permalink(self, mlist, msg):
         """See `IArchiver`."""
         # XXX What about private MHonArc archives?
-        # It is the LMTP server's responsibility to ensure that the message
-        # has a X-Message-ID-Hash header.  If it doesn't then there's no
+        #
+        # It is the LMTP server's responsibility to ensure that the message has
+        # a Message-ID-Hash header.  For backward compatibility, fall back to
+        # X-Message-ID-Hash.  If the message has neither, then there's no
         # permalink.
-        message_id_hash = msg.get('x-message-id-hash')
+        message_id_hash = msg.get('message-id-hash')
+        if message_id_hash is None:
+            message_id_hash = msg.get('x-message-id-hash')
         if message_id_hash is None:
             return None
         if isinstance(message_id_hash, bytes):
@@ -78,8 +82,9 @@ class MHonArc:
         substitutions = config.__dict__.copy()
         substitutions['listname'] = mlist.fqdn_listname
         command = expand(self.command, substitutions)
-        proc = subprocess.Popen(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        proc = Popen(
+            command,
+            stdin=PIPE, stdout=PIPE, stderr=PIPE,
             universal_newlines=True, shell=True)
         stdout, stderr = proc.communicate(msg.as_string())
         if proc.returncode != 0:

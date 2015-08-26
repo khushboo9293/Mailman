@@ -24,6 +24,12 @@ Bugs
    variable `[mailman]html_to_plain_text_command` in the `mailman.cfg` file
    defines the command to use.  It defaults to `lynx`.  (Closes: #109)
  * Confirmation messages should not be `Precedence: bulk`.  (Closes #75)
+ * Fix constraint violations on mailing list deletes affecting PostgreSQL.
+   Given by Abhilash Raj.  (Closes #115)
+ * `mailman` command with no subcommand now prints the help text.  Given by
+   Abhilash Raj.  (Closes #137)
+ * The MHonArc archiver must set stdin=PIPE when calling the subprocess.
+   Given by Walter Doekes.
 
 Configuration
 -------------
@@ -36,6 +42,10 @@ Interfaces
    Given by Aurélien Bompard, tweaked by Barry Warsaw.
  * The default `postauth.txt` and `postheld.txt` templates now no longer
    include the inaccurate admindb and confirmation urls.
+ * Messages now include a `Message-ID-Hash` as the replacement for
+   `X-Message-ID-Hash` although the latter is still included for backward
+   compatibility.  Also be sure that all places which add the header use the
+   same algorithm.  (Closes #118)
 
 Internal API
 ------------
@@ -44,9 +54,24 @@ Internal API
 
 REST
 ----
+ * REST API version 3.1 introduced.  Mostly backward compatible with version
+   3.0 except that UUIDs are represented as hex strings instead of 128-bit
+   integers, since the latter are not compatible with all versions of
+   JavaScript.
  * When creating a user via REST using an address that already exists, but
    isn't linked, the address is linked to the new user.  Given by Aurélien
    Bompard.
+ * The REST API incorrectly parsed `is_server_owner` values when given
+   explicitly in the POST that creates a user.  (Closes #136)
+ * By POSTing to a user resource with an existing unlinked address, you can
+   link the address to the user.  Given by Abhilash Raj.
+
+Other
+-----
+ * The test suite is now Python 3.5 compatible.
+ * Improvements in importing Mailman 2.1 lists, given by Aurélien Bompard.
+ * The ``prototype`` archiver is not web accessible so it does not have a
+   ``list_url`` or permalink.  Given by Aurélien Bompard.
 
 
 3.0.0 -- "Show Don't Tell"

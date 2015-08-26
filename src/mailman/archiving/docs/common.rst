@@ -21,6 +21,9 @@ header, and one that provides a *permalink* to the specific message object in
 the archive.  This latter is appropriate for the message footer or for the RFC
 5064 ``Archived-At:`` header.
 
+If the archiver is not network-accessible, it will return ``None`` and the
+headers will not be added.
+
 Mailman defines a draft spec for how list servers and archivers can
 interoperate.
 
@@ -38,8 +41,8 @@ interoperate.
         http://lists.example.com/.../test@example.com
         http://lists.example.com/.../RSZCG7IGPHFIRW3EMTVMMDNJMNCVCOLE
     prototype
-        http://lists.example.com
-        http://lists.example.com/RSZCG7IGPHFIRW3EMTVMMDNJMNCVCOLE
+        None
+        None
 
 
 Sending the message to the archiver
@@ -92,7 +95,7 @@ address at The Mail Archive.  The message gets no header or footer decoration.
     Subject: An archived message
     Message-ID: <12345>
     X-Message-ID-Hash: RSZCG7IGPHFIRW3EMTVMMDNJMNCVCOLE
-    X-Peer: 127.0.0.1:...
+    X-Peer: ...
     X-MailFrom: test-bounces@example.com
     X-RcptTo: archive@mail-archive.dev
     <BLANKLINE>
@@ -121,6 +124,7 @@ Additionally, this archiver can handle malformed ``Message-IDs``.
     >>> del msg['x-message-id-hash']
     >>> msg['Message-ID'] = '12345>'
     >>> add_message_hash(msg)
+    'YJIGBYRWZFG5LZEBQ7NR25B5HBR2BVD6'
     >>> print(archiver.permalink(mlist, msg))
     http://go.mail-archive.dev/YJIGBYRWZFG5LZEBQ7NR25B5HBR2BVD6
 
@@ -128,6 +132,7 @@ Additionally, this archiver can handle malformed ``Message-IDs``.
     >>> del msg['x-message-id-hash']
     >>> msg['Message-ID'] = '<12345'
     >>> add_message_hash(msg)
+    'XUFFJNJ2P2WC4NDPQRZFDJMV24POP64B'
     >>> print(archiver.permalink(mlist, msg))
     http://go.mail-archive.dev/XUFFJNJ2P2WC4NDPQRZFDJMV24POP64B
 
@@ -135,6 +140,7 @@ Additionally, this archiver can handle malformed ``Message-IDs``.
     >>> del msg['x-message-id-hash']
     >>> msg['Message-ID'] = '12345'
     >>> add_message_hash(msg)
+    'RSZCG7IGPHFIRW3EMTVMMDNJMNCVCOLE'
     >>> print(archiver.permalink(mlist, msg))
     http://go.mail-archive.dev/RSZCG7IGPHFIRW3EMTVMMDNJMNCVCOLE
 
@@ -143,6 +149,7 @@ Additionally, this archiver can handle malformed ``Message-IDs``.
     >>> add_message_hash(msg)
     >>> msg['Message-ID'] = '    12345    '
     >>> add_message_hash(msg)
+    'RSZCG7IGPHFIRW3EMTVMMDNJMNCVCOLE'
     >>> print(archiver.permalink(mlist, msg))
     http://go.mail-archive.dev/RSZCG7IGPHFIRW3EMTVMMDNJMNCVCOLE
 
